@@ -155,7 +155,7 @@ func (t *TransitionTrie) Commit(collectLeaf bool) (common.Hash, *trienode.NodeSe
 // NodeIterator returns an iterator that returns nodes of the trie. Iteration
 // starts at the key after the given start key.
 func (t *TransitionTrie) NodeIterator(startKey []byte) (NodeIterator, error) {
-	panic("not implemented") // TODO: Implement
+	return t.overlay.NodeIterator(startKey)
 }
 
 // Prove constructs a Merkle proof for key. The result contains all encoded nodes
@@ -166,7 +166,7 @@ func (t *TransitionTrie) NodeIterator(startKey []byte) (NodeIterator, error) {
 // nodes of the longest existing prefix of the key (at least the root), ending
 // with the node that proves the absence of the key.
 func (t *TransitionTrie) Prove(key []byte, proofDb ethdb.KeyValueWriter) error {
-	panic("not implemented") // TODO: Implement
+	return t.overlay.Prove(key, proofDb)
 }
 
 // IsVerkle returns true if the trie is verkle-tree based

@@ -107,8 +107,23 @@ func (e Empty) GetHeight() int {
 
 type HashedNode common.Hash
 
-func (h HashedNode) Get(_ []byte, _ NodeResolverFn) ([]byte, error) {
-	panic("not implemented") // TODO: Implement
+func (h HashedNode) resolve(resolver NodeResolverFn) (BinaryNode, error) {
+	if resolver == nil {
+		return nil, errors.New("resolver is nil")
+	}
+	data, err := resolver(h[:])
+	if err != nil {
+		return nil, err
+	}
+	return DeserializeNode(data, 0)
+}
+
+func (h HashedNode) Get(key []byte, resolver NodeResolverFn) ([]byte, error) {
+	node, err := h.resolve(resolver)
+	if err != nil {
+		return nil, err
+	}
+	return node.Get(key, resolver)
 }
 
 func (h HashedNode) Insert(key []byte, value []byte, resolver NodeResolverFn) (BinaryNode, error) {
@@ -129,19 +144,23 @@ func (h HashedNode) Insert(key []byte, value []byte, resolver NodeResolverFn) (B
 }
 
 func (h HashedNode) Commit() common.Hash {
-	panic("not implemented") // TODO: Implement
+	return common.Hash(h)
 }
 
 func (h HashedNode) Copy() BinaryNode {
-	panic("not implemented") // TODO: Implement
+	return h
 }
 
 func (h HashedNode) Hash() common.Hash {
-	panic("not implemented") // TODO: Implement
+	return common.Hash(h)
 }
 
-func (h HashedNode) GetValuesAtStem(_ []byte, _ NodeResolverFn) ([][]byte, error) {
-	panic("not implemented") // TODO: Implement
+func (h HashedNode) GetValuesAtStem(stem []byte, resolver NodeResolverFn) ([][]byte, error) {
+	node, err := h.resolve(resolver)
+	if err != nil {
+		return nil, err
+	}
+	return node.GetValuesAtStem(stem, resolver)
 }
 
 func (h HashedNode) InsertValuesAtStem(key []byte, values [][]byte, resolver NodeResolverFn, depth int) (BinaryNode, error) {
@@ -162,15 +181,21 @@ func (h HashedNode) InsertValuesAtStem(key []byte, values [][]byte, resolver Nod
 }
 
 func (h HashedNode) toDot(parent string, path string) string {
-	panic("not implemented") // TODO: Implement
+	me := fmt.Sprintf("hashed%s", path)
+	ret := fmt.Sprintf("%s [label=\"H:%x\"]\n", me, common.Hash(h))
+	if len(parent) > 0 {
+		ret = fmt.Sprintf("%s %s -> %s\n", ret, parent, me)
+	}
+	return ret
 }
 
-func (h HashedNode) CollectNodes([]byte, NodeFlushFn) error {
-	panic("not implemented") // TODO: Implement
+func (h HashedNode) CollectNodes(path []byte, flush NodeFlushFn) error {
+	flush(path, h)
+	return nil
 }
 
 func (h HashedNode) GetHeight() int {
-	panic("should not get here, this is a bug") // TODO: Implement
+	return 1
 }
 
 type StemNode struct {

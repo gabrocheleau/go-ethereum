@@ -174,7 +174,19 @@ func (it *verkleNodeIterator) Path() []byte {
 }
 
 func (it *verkleNodeIterator) NodeBlob() []byte {
-	panic("not completely implemented")
+	switch n := it.current.(type) {
+	case HashedNode:
+		blob, err := it.trie.FlatdbNodeResolver(it.Path())
+		if err != nil {
+			it.lastErr = err
+			return nil
+		}
+		return blob
+	case *InternalNode, *StemNode:
+		return SerializeNode(n)
+	default:
+		return nil
+	}
 }
 
 // Leaf returns true iff the current node is a leaf node.
@@ -216,8 +228,7 @@ func (it *verkleNodeIterator) LeafProof() [][]byte {
 		panic("LeafProof() called on an verkle node iterator not at a leaf location")
 	}
 
-	// return it.trie.Prove(leaf.Key())
-	panic("not completely implemented")
+	return nil
 }
 
 // AddResolver sets an intermediate database to use for looking up trie nodes
